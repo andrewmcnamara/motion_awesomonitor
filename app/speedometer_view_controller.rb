@@ -2,7 +2,7 @@ class SpeedometerViewController < UIViewController
   M_PI = 3.14
 
   def viewDidLoad
-    # Set Max Value
+    #Set Max Value
     @maxVal = 100
     #Set previous angle
     @prevAngleFactor = -118.4
@@ -33,7 +33,7 @@ class SpeedometerViewController < UIViewController
     @speedometerReading.textColor = UIColor.whiteColor # colorWithRed(114/ 255, green: 146/255, blue: 38/255, alpha: 1.0)
     view.addSubview(@speedometerReading)
 
-    #Set Needle pointer initialy at zero //
+    #Set Needle pointer initially at zero
     rotateIt(@prevAngleFactor)
 
     #Set Speedometer Value
@@ -66,7 +66,7 @@ class SpeedometerViewController < UIViewController
     end
 
     @prevAngleFactor = @angle
-    # Rotate Needle //
+    # Rotate Needle
     rotateNeedle
   end
 
@@ -87,14 +87,14 @@ class SpeedometerViewController < UIViewController
     @speedometer_Timer = NSTimer.scheduledTimerWithTimeInterval(2, target: self, selector: "setSpeedometerCurrentValue", userInfo: nil, repeats: true)
     @speedometerReading.text = "%.2f"%@speedometerCurrentValue
 
-    # Calculate the Angle by which the needle should rotate //
+    # Calculate the Angle by which the needle should rotate
     calculateDeviationAngle
   end
 
 
-  def rotateIt(angl)
+  def rotateIt(angle)
     doAnimation(0.01) do
-      @needleImageView.setTransform(CGAffineTransformMakeRotation((M_PI / 180) * angl))
+      @needleImageView.setTransform(CGAffineTransformMakeRotation((M_PI / 180) * angle))
     end
   end
 
