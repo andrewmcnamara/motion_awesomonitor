@@ -2,30 +2,20 @@ class SpeedometerViewController < UIViewController
   M_PI = 3.14
 
   def viewDidLoad
+    # Set Max Value
+    @maxVal = 100
+    #Set previous angle
+    @prevAngleFactor = -118.4
     @r = Random.new(1234)
     addMeterViewContents
     true
   end
 
-  def addImageView(image_name, frame)
-    theView = UIImageView.alloc.initWithFrame(frame)
-    theView.image = UIImage.imageNamed(image_name)
-    view.addSubview(theView)
-    theView
-  end
-
   def addMeterViewContents
-    backgroundImageView = UIImageView.alloc.initWithFrame(CGRectMake(0, 0, 320, 460))
-    backgroundImageView.image = UIImage.imageNamed("main_bg.png")
-    view.addSubview(backgroundImageView)
-    #addImageView("main_bg.png", CGRectMake(0, 0, 320, 460))
-    meterImageView = UIImageView.alloc.initWithFrame(CGRectMake(10, 40, 286, 315))
-    meterImageView.image = UIImage.imageNamed("meter.png")
-    view.addSubview(meterImageView)
-
+    addImageView("main_bg.png", CGRectMake(0, 0, 320, 460))
+    addImageView("meter.png", CGRectMake(10, 40, 286, 315))
     #Needle
-    imgNeedle = UIImageView.alloc.initWithFrame(CGRectMake(143, 155, 22, 84))
-    @needleImageView = imgNeedle
+    @needleImageView = UIImageView.alloc.initWithFrame(CGRectMake(143, 155, 22, 84))
 
     @needleImageView.layer.anchorPoint = CGPointMake(@needleImageView.layer.anchorPoint.x, @needleImageView.layer.anchorPoint.y*2)
     @needleImageView.backgroundColor = UIColor.clearColor
@@ -33,28 +23,18 @@ class SpeedometerViewController < UIViewController
     view.addSubview(@needleImageView)
 
     # Needle Dot
-    meterImageViewDot = UIImageView.alloc.initWithFrame(CGRectMake(131.5, 175, 45, 44))
-    meterImageViewDot.image = UIImage.imageNamed("center_wheel.png")
-    view.addSubview(meterImageViewDot)
-
+    addImageView("center_wheel.png", CGRectMake(131.5, 175, 45, 44))
 
     # Speedometer Reading
-    tempReading = UILabel.alloc.initWithFrame(CGRectMake(125, 250, 60, 30))
-    @speedometerReading = tempReading
+    @speedometerReading = UILabel.alloc.initWithFrame(CGRectMake(125, 250, 60, 30))
     @speedometerReading.textAlignment = UITextAlignmentCenter
     @speedometerReading.backgroundColor = UIColor.blackColor
     @speedometerReading.text= "0"
-    @speedometerReading.textColor = UIColor.colorWithRed(114/ 255, green: 146/255, blue: 38/255, alpha: 1.0)
+    @speedometerReading.textColor = UIColor.whiteColor # colorWithRed(114/ 255, green: 146/255, blue: 38/255, alpha: 1.0)
     view.addSubview(@speedometerReading)
 
-    # Set Max Value
-    @maxVal = 100
-
     #Set Needle pointer initialy at zero //
-    rotateIt(-118.4)
-
-    #Set previous angle
-    @prevAngleFactor = -118.4
+    rotateIt(@prevAngleFactor)
 
     #Set Speedometer Value
     setSpeedometerCurrentValue
@@ -77,17 +57,12 @@ class SpeedometerViewController < UIViewController
 
     #If Calculated angle is greater than 180 deg, to avoid the needle to rotate in reverse direction first rotate the needle 1/3 of the calculated angle and then 2/3.//
     if ((@angle-@prevAngleFactor).abs >180)
-
-      UIView.beginAnimations(nil, context: nil)
-      UIView.setAnimationDuration(0.5)
-      rotateIt(@angle/3)
-      UIView.commitAnimations
-
-      UIView.beginAnimations(nil, context: nil)
-      UIView.setAnimationDuration(0.5)
-      rotateIt((@angle*2)/3)
-      UIView.commitAnimations
-
+      doAnimation(0.5) do
+        rotateIt(@angle/3)
+      end
+      doAnimation(0.5) do
+        rotateIt((@angle*2)/3)
+      end
     end
 
     @prevAngleFactor = @angle
@@ -95,21 +70,18 @@ class SpeedometerViewController < UIViewController
     rotateNeedle
   end
 
+
   def rotateNeedle
-    UIView.beginAnimations(nil, context: nil)
-    UIView.setAnimationDuration(0.5)
-    @needleImageView.setTransform(CGAffineTransformMakeRotation((M_PI / 180) * @angle))
-    UIView.commitAnimations
+    doAnimation(0.5) do
+      @needleImageView.setTransform(CGAffineTransformMakeRotation((M_PI / 180) * @angle))
+    end
   end
 
 
   def setSpeedometerCurrentValue
     if @speedometer_Timer
       @speedometer_Timer.invalidate
-      #@speedometer_Timer = nil
     end
-
-
     @speedometerCurrentValue = @r.rand(0..100) # Generate Random value between 0 to 100.
 
     @speedometer_Timer = NSTimer.scheduledTimerWithTimeInterval(2, target: self, selector: "setSpeedometerCurrentValue", userInfo: nil, repeats: true)
@@ -121,10 +93,23 @@ class SpeedometerViewController < UIViewController
 
 
   def rotateIt(angl)
+    doAnimation(0.01) do
+      @needleImageView.setTransform(CGAffineTransformMakeRotation((M_PI / 180) * angl))
+    end
+  end
+
+  def doAnimation duration
     UIView.beginAnimations(nil, context: nil)
-    UIView.setAnimationDuration(0.01)
-    @needleImageView.setTransform(CGAffineTransformMakeRotation((M_PI / 180) * angl))
+    UIView.setAnimationDuration(duration)
+    yield
     UIView.commitAnimations
+  end
+
+  def addImageView(image_name, frame)
+    theView = UIImageView.alloc.initWithFrame(frame)
+    theView.image = UIImage.imageNamed(image_name)
+    view.addSubview(theView)
+    theView
   end
 
 end
