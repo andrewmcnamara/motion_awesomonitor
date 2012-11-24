@@ -40,33 +40,26 @@ class SpeedometerViewController < UIViewController
     setSpeedometerCurrentValue
   end
 
+  AngleBounds=(-118.4..119)
 
   def calculateDeviationAngle
-    if (@maxVal>0)
-      @angle = ((@speedometerCurrentValue *237.4)/@maxVal)-118.4 # 237.4 - Total angle between 0 - 100
-    else
-      @angle = 0
-    end
+    # 237.4 - Total angle between 0 - 100
+    @angle=(@maxVal>0) ? ((@speedometerCurrentValue * 237.4)/@maxVal)-118.4 : 0
 
     if @angle<=-118.4
       @angle = -118.4
-    end
-    if @angle>=119
+    elsif @angle>=119
       @angle = 119
     end
 
     #If Calculated angle is greater than 180 deg, to avoid the needle to rotate in reverse direction first rotate the needle 1/3 of the calculated angle and then 2/3.//
     if ((@angle-@prevAngleFactor).abs >180)
-      doAnimation(0.5) do
-        rotateIt(@angle/3)
-      end
-      doAnimation(0.5) do
-        rotateIt((@angle*2)/3)
+      [lambda { rotateIt(@angle/3) }, lambda { rotateIt(@angle*2/3) }].each do |anim_blk|
+        doAnimation(0.5) &anim_blk
       end
     end
 
     @prevAngleFactor = @angle
-    # Rotate Needle
     rotateNeedle
   end
 
